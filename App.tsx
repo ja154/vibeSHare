@@ -1,0 +1,133 @@
+import React, { useState, useCallback, useMemo } from 'react';
+import { Post, User, Comment } from './types';
+import { MOCK_POSTS, MOCK_USERS } from './constants';
+import Header from './components/Header';
+import Feed from './components/Feed';
+import CreatePostModal from './components/CreatePostModal';
+import LoginScreen from './components/LoginScreen';
+import ProfileHeader from './components/ProfileHeader';
+
+function App() {
+  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
+  const [users] = useState<User[]>(MOCK_USERS);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [view, setView] = useState<{ page: 'feed' | 'profile'; userId?: string }>({ page: 'feed' });
+
+  const handleLogin = useCallback((user: User) => {
+    setCurrentUser(user);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setCurrentUser(null);
+    setView({ page: 'feed' }); // Reset view on logout
+  }, []);
+
+  const handleOpenModal = useCallback(() => {
+    if (currentUser) {
+      setIsModalOpen(true);
+    }
+  }, [currentUser]);
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleCreatePost = useCallback((newPostData: Omit<Post, 'id' | 'createdAt' | 'user' | 'reactions' | 'comments'>) => {
+    if (!currentUser) return;
+    const newPost: Post = {
+      ...newPostData,
+      id: new Date().toISOString(),
+      user: currentUser,
+      reactions: { fire: 0, idea: 0, heart: 0 },
+      createdAt: new Date().toISOString(),
+      comments: [],
+    };
+    setPosts(prevPosts => [newPost, ...prevPosts]);
+    setIsModalOpen(false);
+  }, [currentUser]);
+
+  const handleAddComment = useCallback((postId: string, text: string) => {
+    if (!currentUser) return;
+    
+    setPosts(prevPosts => {
+      return prevPosts.map(post => {
+        if (post.id === postId) {
+          const newComment: Comment = {
+            id: new Date().toISOString(),
+            user: currentUser,
+            text,
+            createdAt: new Date().toISOString(),
+          };
+          return {
+            ...post,
+            comments: [...post.comments, newComment],
+          };
+        }
+        return post;
+      });
+    });
+  }, [currentUser]);
+
+  const navigateToProfile = useCallback((userId: string) => {
+    window.scrollTo(0, 0);
+    setView({ page: 'profile', userId });
+  }, []);
+
+  const navigateToFeed = useCallback(() => {
+    window.scrollTo(0, 0);
+    setView({ page: 'feed' });
+  }, []);
+
+  const { displayedPosts, profileUser } = useMemo(() => {
+    if (view.page === 'profile' && view.userId) {
+      const user = users.find(u => u.id === view.userId) || null;
+      if (user) {
+        return {
+          displayedPosts: posts.filter(p => p.user.id === view.userId),
+          profileUser: user
+        };
+      }
+    }
+    return { displayedPosts: posts, profileUser: null };
+  }, [view, posts, users]);
+
+
+  if (!currentUser) {
+    return <LoginScreen users={users} onLogin={handleLogin} />;
+  }
+
+  return (
+    <div className="bg-primary-bg min-h-screen font-sans">
+      <Header 
+        onShareClick={handleOpenModal} 
+        currentUser={currentUser} 
+        onLogout={handleLogout}
+        onNavigateToFeed={navigateToFeed}
+        onNavigateToProfile={navigateToProfile}
+      />
+      <main className="max-w-2xl mx-auto px-4 py-8">
+        {profileUser && (
+          <ProfileHeader 
+            user={profileUser}
+            postCount={displayedPosts.length}
+            onNavigateToFeed={navigateToFeed}
+          />
+        )}
+        <Feed 
+          posts={displayedPosts} 
+          onAddComment={handleAddComment} 
+          currentUser={currentUser}
+          onNavigateToProfile={navigateToProfile}
+        />
+      </main>
+      <CreatePostModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onCreatePost={handleCreatePost}
+      />
+    </div>
+  );
+}
+
+export default App;
