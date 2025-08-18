@@ -7,9 +7,10 @@ interface FeedProps {
   currentUser: User | null;
   onAddComment: (postId: string, text: string) => void;
   onNavigateToProfile: (userId: string) => void;
+  onUpdateReaction: (postId: string, reaction: keyof Post['reactions']) => void;
 }
 
-const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigateToProfile }) => {
+const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction }) => {
   return (
     <div className="flex flex-col gap-6">
       {posts.length > 0 ? (
@@ -20,6 +21,7 @@ const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigat
             currentUser={currentUser} 
             onAddComment={onAddComment}
             onNavigateToProfile={onNavigateToProfile}
+            onUpdateReaction={onUpdateReaction}
           />
         ))
       ) : (

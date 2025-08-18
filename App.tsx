@@ -68,6 +68,23 @@ function App() {
       });
     });
   }, [currentUser]);
+  
+  const handleUpdateReaction = useCallback((postId: string, reaction: keyof Post['reactions']) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            reactions: {
+              ...post.reactions,
+              [reaction]: post.reactions[reaction] + 1,
+            },
+          };
+        }
+        return post;
+      })
+    );
+  }, []);
 
   const navigateToProfile = useCallback((userId: string) => {
     window.scrollTo(0, 0);
@@ -119,6 +136,7 @@ function App() {
           onAddComment={handleAddComment} 
           currentUser={currentUser}
           onNavigateToProfile={navigateToProfile}
+          onUpdateReaction={handleUpdateReaction}
         />
       </main>
       <CreatePostModal

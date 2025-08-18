@@ -11,15 +11,15 @@ interface PostCardProps {
   currentUser: User | null;
   onAddComment: (postId: string, text: string) => void;
   onNavigateToProfile: (userId: string) => void;
+  onUpdateReaction: (postId: string, reaction: keyof Post['reactions']) => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, onNavigateToProfile }) => {
-  const [reactions, setReactions] = useState(post.reactions);
+const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction }) => {
   const [commentText, setCommentText] = useState('');
 
-  const handleReactionClick = useCallback((reaction: keyof typeof reactions) => {
-    setReactions(prev => ({ ...prev, [reaction]: prev[reaction] + 1 }));
-  }, []);
+  const handleReactionClick = useCallback((reaction: keyof Post['reactions']) => {
+    onUpdateReaction(post.id, reaction);
+  }, [post.id, onUpdateReaction]);
   
   const timeAgo = (date: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -86,15 +86,15 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
           <div className="flex gap-4 items-center">
             <button onClick={() => handleReactionClick('fire')} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors group">
               <FireIcon className="w-5 h-5 group-hover:text-orange-400" />
-              <span className="text-sm font-medium">{reactions.fire}</span>
+              <span className="text-sm font-medium">{post.reactions.fire}</span>
             </button>
             <button onClick={() => handleReactionClick('idea')} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors group">
               <LightbulbIcon className="w-5 h-5 group-hover:text-yellow-300" />
-              <span className="text-sm font-medium">{reactions.idea}</span>
+              <span className="text-sm font-medium">{post.reactions.idea}</span>
             </button>
             <button onClick={() => handleReactionClick('heart')} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors group">
               <HeartIcon className="w-5 h-5 group-hover:text-red-500" />
-              <span className="text-sm font-medium">{reactions.heart}</span>
+              <span className="text-sm font-medium">{post.reactions.heart}</span>
             </button>
           </div>
           <a
