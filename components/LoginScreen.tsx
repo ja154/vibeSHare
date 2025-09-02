@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '../types';
 
 interface LoginScreenProps {
@@ -8,27 +7,68 @@ interface LoginScreenProps {
 }
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin }) => {
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLoginAttempt = (e: React.FormEvent) => {
+    e.preventDefault();
+    const foundUser = users.find(user => user.name.toLowerCase() === username.toLowerCase().trim());
+    if (foundUser) {
+      onLogin(foundUser);
+    } else {
+      const availableUsers = users.map(u => u.name).join(', ');
+      setError(`User not found. Try one of these: ${availableUsers}`);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-primary-bg flex flex-col items-center justify-center z-50 p-4">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-bold text-white tracking-tighter mb-2">
           Welcome to Vibe<span className="text-neon-green">share</span>
         </h1>
-        <p className="text-lg text-gray-400">Choose your developer persona to start sharing.</p>
+        <p className="text-lg text-gray-400">Log in to start sharing your vibes.</p>
       </div>
-      <div className="max-w-2xl w-full grid grid-cols-2 md:grid-cols-3 gap-6">
-        {users.map(user => (
-          <button
-            key={user.id}
-            onClick={() => onLogin(user)}
-            className="bg-card-bg border border-border-color rounded-2xl p-6 flex flex-col items-center gap-4 text-center group hover:border-neon-green hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary-bg focus:ring-neon-green"
-            aria-label={`Log in as ${user.name}`}
-          >
-            <img src={user.avatarUrl} alt={user.name} className="w-24 h-24 rounded-full border-4 border-border-color group-hover:border-neon-green transition-colors" />
-            <h2 className="font-bold text-lg text-white">{user.name}</h2>
-          </button>
-        ))}
+      
+      <div className="max-w-sm w-full">
+        <form 
+            onSubmit={handleLoginAttempt} 
+            className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg"
+        >
+            <div className="space-y-6">
+                <div>
+                    <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                        Username
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        value={username}
+                        onChange={(e) => {
+                            setUsername(e.target.value);
+                            if (error) setError('');
+                        }}
+                        placeholder="e.g. Alex Dev"
+                        required
+                        className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition"
+                        aria-describedby="username-error"
+                    />
+                </div>
+                {error && (
+                    <p id="username-error" className="text-sm text-red-400 -mt-2">
+                        {error}
+                    </p>
+                )}
+                <button
+                    type="submit"
+                    className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green"
+                >
+                    Login
+                </button>
+            </div>
+        </form>
       </div>
+
        <footer className="absolute bottom-8 text-gray-600 text-sm">
         This is a simulated login experience. No data is stored or sent.
       </footer>

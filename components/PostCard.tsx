@@ -116,10 +116,18 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
           <div className="space-y-4">
             {post.comments.map(comment => (
               <div key={comment.id} className="flex items-start gap-3">
-                <img src={comment.user.avatarUrl} alt={comment.user.name} className="w-8 h-8 rounded-full border-2 border-transparent" />
+                <button 
+                    onClick={() => onNavigateToProfile(comment.user.id)} 
+                    className="flex-shrink-0 rounded-full group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green" 
+                    aria-label={`View profile of ${comment.user.name}`}
+                >
+                  <img src={comment.user.avatarUrl} alt={comment.user.name} className="w-8 h-8 rounded-full border-2 border-border-color group-hover:border-neon-green transition-colors" />
+                </button>
                 <div className="flex-1">
                   <div className="flex items-baseline gap-2">
-                     <p className="font-semibold text-sm text-white">{comment.user.name}</p>
+                     <button onClick={() => onNavigateToProfile(comment.user.id)} className="font-semibold text-sm text-white hover:text-neon-green transition-colors focus:outline-none rounded-sm focus:ring-2 focus:ring-offset-1 focus:ring-offset-card-bg focus:ring-neon-green">
+                        {comment.user.name}
+                     </button>
                      <p className="text-xs text-gray-500">{timeAgo(comment.createdAt)}</p>
                   </div>
                   <p className="text-sm text-gray-300 bg-primary-bg p-2 rounded-lg mt-1">{comment.text}</p>
