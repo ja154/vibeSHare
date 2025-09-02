@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Post, User, Comment } from './types';
 import { MOCK_POSTS, MOCK_USERS } from './constants';
@@ -10,7 +9,7 @@ import ProfileHeader from './components/ProfileHeader';
 
 function App() {
   const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
-  const [users] = useState<User[]>(MOCK_USERS);
+  const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [view, setView] = useState<{ page: 'feed' | 'profile'; userId?: string }>({ page: 'feed' });
@@ -22,6 +21,30 @@ function App() {
   const handleLogout = useCallback(() => {
     setCurrentUser(null);
     setView({ page: 'feed' }); // Reset view on logout
+  }, []);
+
+  const handleSignUp = useCallback((username: string, password: string): User => {
+    const newUser: User = {
+        id: String(users.length + 1),
+        name: username,
+        password: password,
+        avatarUrl: `https://picsum.photos/seed/${username.toLowerCase()}/100/100`,
+    };
+    setUsers(prev => [...prev, newUser]);
+    setCurrentUser(newUser);
+    return newUser;
+  }, [users.length]);
+
+  const handleResetPassword = useCallback((username: string, newPassword: string): boolean => {
+    let success = false;
+    setUsers(prevUsers => prevUsers.map(user => {
+      if (user.name.toLowerCase() === username.toLowerCase()) {
+        success = true;
+        return { ...user, password: newPassword };
+      }
+      return user;
+    }));
+    return success;
   }, []);
 
   const handleOpenModal = useCallback(() => {
@@ -142,7 +165,14 @@ function App() {
 
 
   if (!currentUser) {
-    return <LoginScreen users={users} onLogin={handleLogin} />;
+    return (
+      <LoginScreen 
+        users={users} 
+        onLogin={handleLogin} 
+        onSignUp={handleSignUp}
+        onResetPassword={handleResetPassword}
+      />
+    );
   }
 
   return (

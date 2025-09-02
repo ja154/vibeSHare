@@ -1,101 +1,203 @@
-
 import React, { useState } from 'react';
 import { User } from '../types';
+
+type View = 'login' | 'signup' | 'forgot_request' | 'forgot_reset';
 
 interface LoginScreenProps {
   users: User[];
   onLogin: (user: User) => void;
+  onSignUp: (username: string, password: string) => void;
+  onResetPassword: (username: string, newPassword: string) => boolean;
 }
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, onSignUp, onResetPassword }) => {
+  const [view, setView] = useState<View>('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [userToReset, setUserToReset] = useState('');
+
+  const clearState = (newView?: View) => {
+    setUsername('');
+    setPassword('');
+    setConfirmPassword('');
+    setError('');
+    setSuccess('');
+    if (newView) {
+      setView(newView);
+    }
+  };
 
   const handleLoginAttempt = (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
     const foundUser = users.find(user => user.name.toLowerCase() === username.toLowerCase().trim());
     if (foundUser) {
-      // In a real app, passwords would be hashed. Here we do a simple string comparison.
       if (foundUser.password === password) {
         onLogin(foundUser);
       } else {
         setError('Incorrect password. Please try again.');
       }
     } else {
-      setError(`User not found. Please check the username.`);
+      setError('User not found. Please check the username.');
+    }
+  };
+  
+  const handleSignUpAttempt = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    const existingUser = users.find(user => user.name.toLowerCase() === username.toLowerCase().trim());
+    if (existingUser) {
+      setError('Username is already taken.');
+      return;
+    }
+    onSignUp(username.trim(), password);
+  };
+
+  const handleForgotRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    const foundUser = users.find(user => user.name.toLowerCase() === username.toLowerCase().trim());
+    if (foundUser) {
+      setUserToReset(foundUser.name);
+      clearState('forgot_reset');
+    } else {
+      setError('No user found with that name.');
     }
   };
 
-  const clearError = () => {
-    if (error) setError('');
-  }
+  const handlePasswordReset = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    const success = onResetPassword(userToReset, password);
+    if(success) {
+      clearState('login');
+      setSuccess('Password reset successfully! You can now log in.');
+    } else {
+      setError('Something went wrong. Please try again.');
+    }
+  };
+
+  const renderTitle = () => {
+    switch (view) {
+      case 'signup':
+        return { title: 'Create Account', subtitle: 'Join the community and share your vibes.' };
+      case 'forgot_request':
+        return { title: 'Reset Password', subtitle: 'Enter your username to reset your password.' };
+      case 'forgot_reset':
+        return { title: 'Set New Password', subtitle: `Enter a new password for ${userToReset}.` };
+      case 'login':
+      default:
+        return { title: 'Welcome Back!', subtitle: 'Log in to continue sharing your vibes.' };
+    }
+  };
+  const { title, subtitle } = renderTitle();
 
   return (
-    <div className="fixed inset-0 bg-primary-bg flex flex-col items-center justify-center z-50 p-4">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-white tracking-tighter mb-2">
-          Welcome to Vibe<span className="text-neon-green">share</span>
+    <div className="fixed inset-0 bg-primary-bg flex flex-col items-center justify-center z-50 p-4 transition-all duration-300">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-white tracking-tighter mb-2 cursor-pointer" onClick={() => clearState('login')}>
+          Vibe<span className="text-neon-green">share</span>
         </h1>
-        <p className="text-lg text-gray-400">Log in to start sharing your vibes.</p>
+        <p className="text-lg text-gray-400">{subtitle}</p>
       </div>
       
       <div className="max-w-sm w-full">
-        <form 
-            onSubmit={handleLoginAttempt} 
-            className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg"
-        >
+        {/* LOGIN FORM */}
+        {view === 'login' && (
+          <form onSubmit={handleLoginAttempt} className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg">
+            {success && <p className="text-sm text-green-400 mb-4">{success}</p>}
             <div className="space-y-6">
-                <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
-                        Username
-                    </label>
-                    <input
-                        type="text"
-                        id="username"
-                        value={username}
-                        onChange={(e) => {
-                            setUsername(e.target.value);
-                            clearError();
-                        }}
-                        placeholder="e.g. Alex Dev"
-                        required
-                        className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition"
-                        aria-describedby="error-message"
-                    />
+              <div>
+                <label htmlFor="username-login" className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                <input type="text" id="username-login" value={username} onChange={e => setUsername(e.target.value)} placeholder="e.g. Alex Dev" required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+              <div>
+                <div className="flex justify-between items-baseline">
+                  <label htmlFor="password-login" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                  <button type="button" onClick={() => clearState('forgot_request')} className="text-xs text-neon-green/80 hover:text-neon-green font-semibold">Forgot Password?</button>
                 </div>
-                <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                        Password
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => {
-                            setPassword(e.target.value);
-                            clearError();
-                        }}
-                        placeholder="e.g. password1"
-                        required
-                        className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition"
-                        aria-describedby="error-message"
-                    />
-                </div>
-                {error && (
-                    <p id="error-message" className="text-sm text-red-400 -mt-2">
-                        {error}
-                    </p>
-                )}
-                <button
-                    type="submit"
-                    className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green"
-                >
-                    Login
-                </button>
+                <input type="password" id="password-login" value={password} onChange={e => setPassword(e.target.value)} placeholder="e.g. password1" required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+              {error && <p className="text-sm text-red-400 -mt-2">{error}</p>}
+              <button type="submit" className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green">Login</button>
             </div>
-        </form>
-         <p className="text-xs text-center text-gray-500 mt-4">Hint: For any user, the password is 'password' + their ID number (e.g., 'password1').</p>
+            <p className="text-sm text-center text-gray-500 mt-6">
+              Don't have an account? <button type="button" onClick={() => clearState('signup')} className="font-semibold text-neon-green/80 hover:text-neon-green">Sign Up</button>
+            </p>
+          </form>
+        )}
+
+        {/* SIGN UP FORM */}
+        {view === 'signup' && (
+           <form onSubmit={handleSignUpAttempt} className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg">
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="username-signup" className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                <input type="text" id="username-signup" value={username} onChange={e => setUsername(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+              <div>
+                <label htmlFor="password-signup" className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <input type="password" id="password-signup" value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+               <div>
+                <label htmlFor="confirm-password-signup" className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+                <input type="password" id="confirm-password-signup" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+              {error && <p className="text-sm text-red-400 -mt-2">{error}</p>}
+              <button type="submit" className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green">Create Account</button>
+            </div>
+             <p className="text-sm text-center text-gray-500 mt-6">
+              Already have an account? <button type="button" onClick={() => clearState('login')} className="font-semibold text-neon-green/80 hover:text-neon-green">Log In</button>
+            </p>
+          </form>
+        )}
+
+        {/* FORGOT PASSWORD REQUEST */}
+        {view === 'forgot_request' && (
+           <form onSubmit={handleForgotRequest} className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg">
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="username-forgot" className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+                <input type="text" id="username-forgot" value={username} onChange={e => setUsername(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+              {error && <p className="text-sm text-red-400 -mt-2">{error}</p>}
+              <button type="submit" className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green">Find Account</button>
+            </div>
+             <p className="text-sm text-center text-gray-500 mt-6">
+              Remembered your password? <button type="button" onClick={() => clearState('login')} className="font-semibold text-neon-green/80 hover:text-neon-green">Back to Login</button>
+            </p>
+          </form>
+        )}
+        
+        {/* FORGOT PASSWORD RESET */}
+        {view === 'forgot_reset' && (
+           <form onSubmit={handlePasswordReset} className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg">
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="password-reset" className="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                <input type="password" id="password-reset" value={password} onChange={e => setPassword(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+               <div>
+                <label htmlFor="confirm-password-reset" className="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                <input type="password" id="confirm-password-reset" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
+              </div>
+              {error && <p className="text-sm text-red-400 -mt-2">{error}</p>}
+              <button type="submit" className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green">Set New Password</button>
+            </div>
+          </form>
+        )}
       </div>
 
        <footer className="absolute bottom-8 text-gray-600 text-sm">
