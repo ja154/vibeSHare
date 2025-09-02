@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 
-type View = 'login' | 'signup' | 'forgot_request' | 'forgot_reset';
+type View = 'login' | 'signup' | 'forgot_request' | 'forgot_reset' | 'forgot_sent';
 
 interface LoginScreenProps {
   users: User[];
@@ -24,7 +24,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, onSignUp, onR
     setPassword('');
     setConfirmPassword('');
     setError('');
-    setSuccess('');
+    // Keep success message only when transitioning to login
+    if (newView !== 'login') {
+      setSuccess('');
+    }
     if (newView) {
       setView(newView);
     }
@@ -63,13 +66,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, onSignUp, onR
 
   const handleForgotRequest = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     const foundUser = users.find(user => user.name.toLowerCase() === username.toLowerCase().trim());
     if (foundUser) {
-      setUserToReset(foundUser.name);
-      clearState('forgot_reset');
+        setUserToReset(foundUser.name);
     } else {
-      setError('No user found with that name.');
+        setUserToReset('');
+    }
+    // Always go to the 'sent' screen to avoid user enumeration
+    clearState('forgot_sent');
+  };
+
+  const handleProceedToReset = () => {
+    if (userToReset) {
+        clearState('forgot_reset');
+    } else {
+        // If no valid user was entered, just go back to login.
+        clearState('login');
     }
   };
 
@@ -95,6 +107,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, onSignUp, onR
         return { title: 'Create Account', subtitle: 'Join the community and share your vibes.' };
       case 'forgot_request':
         return { title: 'Reset Password', subtitle: 'Enter your username to reset your password.' };
+      case 'forgot_sent':
+        return { title: 'Check Your Inbox', subtitle: 'We\'ve simulated sending a password reset link.' };
       case 'forgot_reset':
         return { title: 'Set New Password', subtitle: `Enter a new password for ${userToReset}.` };
       case 'login':
@@ -172,8 +186,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, onSignUp, onR
                 <label htmlFor="username-forgot" className="block text-sm font-medium text-gray-300 mb-2">Username</label>
                 <input type="text" id="username-forgot" value={username} onChange={e => setUsername(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition" />
               </div>
-              {error && <p className="text-sm text-red-400 -mt-2">{error}</p>}
-              <button type="submit" className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green">Find Account</button>
+              <button type="submit" className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green">Send Reset Link</button>
             </div>
              <p className="text-sm text-center text-gray-500 mt-6">
               Remembered your password? <button type="button" onClick={() => clearState('login')} className="font-semibold text-neon-green/80 hover:text-neon-green">Back to Login</button>
@@ -181,6 +194,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin, onSignUp, onR
           </form>
         )}
         
+        {/* FORGOT PASSWORD SENT CONFIRMATION */}
+        {view === 'forgot_sent' && (
+           <div className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg text-center">
+            <p className="text-gray-300 mb-6">If an account with the provided username exists, a password reset link has been simulated. Please proceed to the next step.</p>
+            <button type="button" onClick={handleProceedToReset} className="w-full bg-neon-green text-black font-bold px-6 py-3 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green">Set New Password</button>
+             <p className="text-sm text-center text-gray-500 mt-6">
+              <button type="button" onClick={() => clearState('login')} className="font-semibold text-neon-green/80 hover:text-neon-green">Back to Login</button>
+            </p>
+          </div>
+        )}
+
         {/* FORGOT PASSWORD RESET */}
         {view === 'forgot_reset' && (
            <form onSubmit={handlePasswordReset} className="bg-card-bg border border-border-color rounded-2xl p-8 shadow-lg">

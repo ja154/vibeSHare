@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { Post, User, Comment } from './types';
 import { MOCK_POSTS, MOCK_USERS } from './constants';
@@ -29,6 +30,8 @@ function App() {
         name: username,
         password: password,
         avatarUrl: `https://picsum.photos/seed/${username.toLowerCase()}/100/100`,
+        followers: [],
+        following: [],
     };
     setUsers(prev => [...prev, newUser]);
     setCurrentUser(newUser);
@@ -139,6 +142,35 @@ function App() {
     }));
   }, [currentUser]);
 
+  const handleFollowToggle = useCallback((userIdToToggle: string) => {
+    if (!currentUser) return;
+    
+    const newUsers = users.map(user => {
+        // Update the current user's following list
+        if (user.id === currentUser.id) {
+            const isFollowing = user.following.includes(userIdToToggle);
+            const newFollowing = isFollowing
+                ? user.following.filter(id => id !== userIdToToggle)
+                : [...user.following, userIdToToggle];
+            return { ...user, following: newFollowing };
+        }
+        // Update the target user's followers list
+        if (user.id === userIdToToggle) {
+            const isFollowed = user.followers.includes(currentUser.id);
+            const newFollowers = isFollowed
+                ? user.followers.filter(id => id !== currentUser.id)
+                : [...user.followers, currentUser.id];
+            return { ...user, followers: newFollowers };
+        }
+        return user;
+    });
+    
+    const updatedCurrentUser = newUsers.find(u => u.id === currentUser.id);
+
+    setUsers(newUsers);
+    if(updatedCurrentUser) setCurrentUser(updatedCurrentUser);
+
+  }, [users, currentUser]);
 
   const navigateToProfile = useCallback((userId: string) => {
     window.scrollTo(0, 0);
@@ -196,6 +228,7 @@ function App() {
             onUpdateReaction={handleUpdateReaction}
             onDeletePost={handleDeletePost}
             onDeleteComment={handleDeleteComment}
+            onFollowToggle={handleFollowToggle}
           />
         ) : (
           <Feed 

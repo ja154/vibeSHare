@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Post, User } from '../types';
 import ProfileHeader from './ProfileHeader';
@@ -13,6 +14,7 @@ interface ProfilePageProps {
   onUpdateReaction: (postId: string, reaction: keyof Post['reactions']) => void;
   onDeletePost: (postId: string) => void;
   onDeleteComment: (postId: string, commentId: string) => void;
+  onFollowToggle: (userId: string) => void;
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -24,7 +26,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   onNavigateToProfile,
   onUpdateReaction,
   onDeletePost,
-  onDeleteComment
+  onDeleteComment,
+  onFollowToggle,
 }) => {
   return (
     <>
@@ -32,6 +35,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         user={profileUser}
         postCount={posts.length}
         onNavigateToFeed={onNavigateToFeed}
+        currentUser={currentUser}
+        onFollowToggle={onFollowToggle}
       />
       <Feed 
         posts={posts}
