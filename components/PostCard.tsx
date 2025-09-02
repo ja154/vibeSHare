@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Post, User } from '../types';
 import { FireIcon } from './icons/FireIcon';
@@ -7,6 +6,7 @@ import { HeartIcon } from './icons/HeartIcon';
 import { CodeBracketIcon } from './icons/CodeBracketIcon';
 import { ChatBubbleIcon } from './icons/ChatBubbleIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { PencilIcon } from './icons/PencilIcon';
 
 interface PostCardProps {
   post: Post;
@@ -16,14 +16,18 @@ interface PostCardProps {
   onUpdateReaction: (postId: string, reaction: keyof Post['reactions']) => void;
   onDeletePost: (postId: string) => void;
   onDeleteComment: (postId: string, commentId: string) => void;
+  onEditPost: (post: Post) => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction, onDeletePost, onDeleteComment }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction, onDeletePost, onDeleteComment, onEditPost }) => {
   const [commentText, setCommentText] = useState('');
 
   const handleReactionClick = useCallback((reaction: keyof Post['reactions']) => {
+    // Basic guard: user must be logged in to react.
+    // The main logic is in App.tsx, but this prevents the call.
+    if (!currentUser) return;
     onUpdateReaction(post.id, reaction);
-  }, [post.id, onUpdateReaction]);
+  }, [post.id, onUpdateReaction, currentUser]);
   
   const timeAgo = (date: string) => {
     const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
@@ -48,6 +52,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
     }
   };
 
+  const userHasReactedFire = currentUser ? post.reactions.fire.includes(currentUser.id) : false;
+  const userHasReactedIdea = currentUser ? post.reactions.idea.includes(currentUser.id) : false;
+  const userHasReactedHeart = currentUser ? post.reactions.heart.includes(currentUser.id) : false;
+
   return (
     <article className="bg-card-bg border border-border-color rounded-2xl overflow-hidden shadow-lg transition-all hover:border-neon-green/50">
       <div className="p-4">
@@ -64,13 +72,22 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
             </div>
           </button>
           {currentUser?.id === post.user.id && (
-            <button
-                onClick={() => onDeletePost(post.id)}
-                className="text-gray-500 hover:text-red-500 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-red-500"
-                aria-label="Delete post"
-            >
-                <TrashIcon className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={() => onEditPost(post)}
+                    className="text-gray-500 hover:text-neon-green transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green"
+                    aria-label="Edit post"
+                >
+                    <PencilIcon className="w-5 h-5" />
+                </button>
+                <button
+                    onClick={() => onDeletePost(post.id)}
+                    className="text-gray-500 hover:text-red-500 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-red-500"
+                    aria-label="Delete post"
+                >
+                    <TrashIcon className="w-5 h-5" />
+                </button>
+            </div>
           )}
         </div>
         <h2 className="text-xl font-bold text-white mb-2">{post.title}</h2>
@@ -97,17 +114,35 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
       <div className="p-4">
         <div className="flex justify-between items-center">
           <div className="flex gap-4 items-center">
-            <button onClick={() => handleReactionClick('fire')} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors group">
-              <FireIcon className="w-5 h-5 group-hover:text-orange-400" />
-              <span className="text-sm font-medium">{post.reactions.fire}</span>
+            <button 
+              onClick={() => handleReactionClick('fire')} 
+              className={`flex items-center gap-1.5 transition-colors group ${userHasReactedFire ? 'text-orange-400' : 'text-gray-400 hover:text-white'}`}
+              aria-pressed={userHasReactedFire}
+              aria-label={`Fire reaction, currently ${post.reactions.fire.length} reactions. ${userHasReactedFire ? 'You have reacted.' : ''}`}
+            >
+              <FireIcon className="w-5 h-5" />
+              <span className="text-sm font-medium">{post.reactions.fire.length}</span>
             </button>
-            <button onClick={() => handleReactionClick('idea')} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors group">
-              <LightbulbIcon className="w-5 h-5 group-hover:text-yellow-300" />
-              <span className="text-sm font-medium">{post.reactions.idea}</span>
+            <button 
+              onClick={() => handleReactionClick('idea')}
+              className={`flex items-center gap-1.5 transition-colors group ${userHasReactedIdea ? 'text-yellow-300' : 'text-gray-400 hover:text-white'}`}
+              aria-pressed={userHasReactedIdea}
+              aria-label={`Idea reaction, currently ${post.reactions.idea.length} reactions. ${userHasReactedIdea ? 'You have reacted.' : ''}`}
+            >
+              <LightbulbIcon className="w-5 h-5" />
+              <span className="text-sm font-medium">{post.reactions.idea.length}</span>
             </button>
-            <button onClick={() => handleReactionClick('heart')} className="flex items-center gap-1.5 text-gray-400 hover:text-white transition-colors group">
-              <HeartIcon className="w-5 h-5 group-hover:text-red-500" />
-              <span className="text-sm font-medium">{post.reactions.heart}</span>
+            <button 
+              onClick={() => handleReactionClick('heart')}
+              className={`flex items-center gap-1.5 transition-colors group ${userHasReactedHeart ? 'text-red-500' : 'text-gray-400 hover:text-white'}`}
+              aria-pressed={userHasReactedHeart}
+              aria-label={`Heart reaction, currently ${post.reactions.heart.length} reactions. ${userHasReactedHeart ? 'You have reacted.' : ''}`}
+            >
+              <HeartIcon 
+                className="w-5 h-5" 
+                fill={userHasReactedHeart ? 'currentColor' : 'none'}
+              />
+              <span className="text-sm font-medium">{post.reactions.heart.length}</span>
             </button>
           </div>
           <a

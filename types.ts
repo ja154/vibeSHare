@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   name: string;
@@ -26,9 +25,9 @@ export interface Post {
   codeLink: string;
   tags: string[];
   reactions: {
-    fire: number;
-    idea: number;
-    heart: number;
+    fire: string[];
+    idea: string[];
+    heart: string[];
   };
   createdAt: string;
   comments: Comment[];

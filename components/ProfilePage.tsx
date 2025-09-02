@@ -15,6 +15,7 @@ interface ProfilePageProps {
   onDeletePost: (postId: string) => void;
   onDeleteComment: (postId: string, commentId: string) => void;
   onFollowToggle: (userId: string) => void;
+  onEditPost: (post: Post) => void;
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = ({
@@ -28,6 +29,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   onDeletePost,
   onDeleteComment,
   onFollowToggle,
+  onEditPost,
 }) => {
   return (
     <>
@@ -46,6 +48,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
         onUpdateReaction={onUpdateReaction}
         onDeletePost={onDeletePost}
         onDeleteComment={onDeleteComment}
+        onEditPost={onEditPost}
       />
     </>
   );

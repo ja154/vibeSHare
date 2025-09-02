@@ -9,6 +9,8 @@ interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreatePost: (postData: Omit<Post, 'id' | 'createdAt' | 'user' | 'reactions' | 'comments'>) => void;
+  onUpdatePost: (postId: string, postData: Omit<Post, 'id' | 'createdAt' | 'user' | 'reactions' | 'comments'>) => void;
+  postToEdit: Post | null;
 }
 
 const fileToDataUrl = (file: File): Promise<string> => {
@@ -21,7 +23,7 @@ const fileToDataUrl = (file: File): Promise<string> => {
 };
 
 
-const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onCreatePost }) => {
+const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onCreatePost, onUpdatePost, postToEdit }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [codeLink, setCodeLink] = useState('');
@@ -30,6 +32,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onCr
   const [mediaPreview, setMediaPreview] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEditing = !!postToEdit;
 
   const resetForm = useCallback(() => {
     setTitle('');
@@ -40,51 +44,72 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onCr
     setMediaPreview('');
   }, []);
 
+  useEffect(() => {
+    if (isEditing && postToEdit) {
+      setTitle(postToEdit.title);
+      setDescription(postToEdit.description);
+      setCodeLink(postToEdit.codeLink);
+      setTags(postToEdit.tags.join(', '));
+      setMediaPreview(postToEdit.mediaUrl);
+      setMediaFile(null);
+    } else {
+      resetForm();
+    }
+  }, [postToEdit, isEditing, resetForm]);
+
+
   const handleClose = useCallback(() => {
-    resetForm();
     onClose();
-  }, [resetForm, onClose]);
+  }, [onClose]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith('image/')) {
       setMediaFile(file);
-       if (mediaPreview) {
-          // revokeObjectURL is not needed if we switch to data URLs immediately
-          // but good practice if we were keeping blob urls around
-      }
       fileToDataUrl(file).then(setMediaPreview);
-    } else {
-      setMediaFile(null);
-      setMediaPreview('');
     }
   };
 
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
-    if (!title || !description || !codeLink || !mediaFile) {
+    if (!title || !description || !codeLink || (!mediaFile && !isEditing)) {
       alert('Please fill all required fields and upload an image.');
       return;
     }
     setIsSubmitting(true);
     try {
-      const mediaUrl = await fileToDataUrl(mediaFile);
-      onCreatePost({
+      let mediaUrl;
+      if (mediaFile) {
+        mediaUrl = await fileToDataUrl(mediaFile);
+      } else if (isEditing && postToEdit) {
+        mediaUrl = postToEdit.mediaUrl;
+      } else {
+        alert('Please upload an image.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const postData = {
         title,
         description,
         codeLink,
         mediaUrl,
-        mediaType: 'image',
+        mediaType: 'image' as const,
         tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-      });
-      handleClose(); // Use handleClose to properly reset and close
+      };
+
+      if (isEditing && postToEdit) {
+        onUpdatePost(postToEdit.id, postData);
+      } else {
+        onCreatePost(postData);
+      }
     } catch (error) {
-      console.error("Error processing file:", error);
-      alert('There was an error processing your image. Please try again.');
+      console.error("Error processing submission:", error);
+      alert('There was an error processing your request. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [onCreatePost, title, description, codeLink, mediaFile, tags, handleClose]);
+  }, [isEditing, postToEdit, onCreatePost, onUpdatePost, title, description, codeLink, mediaFile, tags]);
 
   const handleGenerateIdea = async () => {
     setIsGenerating(true);
@@ -111,22 +136,24 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onCr
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={handleClose}>
       <div className="bg-card-bg border border-border-color rounded-2xl w-full max-w-lg shadow-lg relative max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="sticky top-0 bg-card-bg/80 backdrop-blur-sm z-10 flex justify-between items-center p-4 border-b border-border-color">
-          <h2 className="text-xl font-bold text-white">Share your Vibe</h2>
+          <h2 className="text-xl font-bold text-white">{isEditing ? 'Edit your Vibe' : 'Share your Vibe'}</h2>
           <button onClick={handleClose} className="text-gray-400 hover:text-white" aria-label="Close modal">
             <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="relative">
-            <button
-              type="button"
-              onClick={handleGenerateIdea}
-              disabled={isGenerating}
-              className="absolute top-0 right-0 flex items-center gap-1.5 text-xs bg-neon-green/10 text-neon-green px-2 py-1 rounded-full font-semibold transition hover:bg-neon-green/20 disabled:opacity-50 disabled:cursor-wait"
-            >
-              <SparklesIcon className="w-4 h-4" />
-              {isGenerating ? 'Generating...' : 'Get Idea with AI'}
-            </button>
+            {!isEditing && (
+                <button
+                type="button"
+                onClick={handleGenerateIdea}
+                disabled={isGenerating}
+                className="absolute top-0 right-0 flex items-center gap-1.5 text-xs bg-neon-green/10 text-neon-green px-2 py-1 rounded-full font-semibold transition hover:bg-neon-green/20 disabled:opacity-50 disabled:cursor-wait"
+                >
+                <SparklesIcon className="w-4 h-4" />
+                {isGenerating ? 'Generating...' : 'Get Idea with AI'}
+                </button>
+            )}
             <label className="block text-sm font-medium text-gray-300 mb-1" htmlFor="title">Title</label>
             <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required className="w-full bg-primary-bg border border-border-color rounded-lg p-2 text-white focus:ring-2 focus:ring-neon-green focus:outline-none" />
           </div>
@@ -177,7 +204,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose, onCr
           </div>
           <div className="flex justify-end pt-4">
             <button type="submit" disabled={isSubmitting} className="bg-neon-green text-black font-bold px-6 py-2 rounded-lg transition-all hover:bg-white hover:shadow-neon focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green disabled:opacity-50 disabled:cursor-wait">
-              {isSubmitting ? 'Sharing...' : 'Share'}
+              {isSubmitting ? (isEditing ? 'Saving...' : 'Sharing...') : (isEditing ? 'Save Changes' : 'Share')}
             </button>
           </div>
         </form>

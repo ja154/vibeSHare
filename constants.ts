@@ -1,4 +1,3 @@
-
 import { Post, User } from './types';
 
 export const MOCK_USERS: User[] = [
@@ -20,7 +19,7 @@ export const MOCK_POSTS: Post[] = [
     mediaType: 'image',
     codeLink: 'https://github.com/example/p5-art',
     tags: ['p5js', 'creative-coding', 'generative-art', 'javascript'],
-    reactions: { fire: 12, idea: 25, heart: 42 },
+    reactions: { fire: ['2', '4'], idea: ['2', '3', '5'], heart: ['1', '2', '3'] },
     createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
     comments: [
       { id: 'c1-1', user: MOCK_USERS[1], text: 'This is amazing! The colors are so vibrant.', createdAt: new Date(Date.now() - 1000 * 60 * 4).toISOString() },
@@ -36,7 +35,7 @@ export const MOCK_POSTS: Post[] = [
     mediaType: 'image',
     codeLink: 'https://codepen.io/example/tailwind-login',
     tags: ['react', 'tailwindcss', 'ui-design', 'frontend'],
-    reactions: { fire: 8, idea: 15, heart: 30 },
+    reactions: { fire: ['1'], idea: ['1', '3'], heart: ['1', '4', '5'] },
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
     comments: [
        { id: 'c2-1', user: MOCK_USERS[0], text: 'Clean UI. Looks great!', createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
@@ -51,7 +50,7 @@ export const MOCK_POSTS: Post[] = [
     mediaType: 'image',
     codeLink: 'https://github.com/example/go-api',
     tags: ['golang', 'api', 'microservices', 'backend'],
-    reactions: { fire: 45, idea: 18, heart: 55 },
+    reactions: { fire: ['1', '4', '5'], idea: [], heart: ['2'] },
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
     comments: [],
   },
@@ -64,7 +63,7 @@ export const MOCK_POSTS: Post[] = [
     mediaType: 'image',
     codeLink: 'https://replit.com/@example/image-classifier',
     tags: ['python', 'ai', 'tensorflow', 'machine-learning'],
-    reactions: { fire: 33, idea: 50, heart: 78 },
+    reactions: { fire: ['1', '2', '3', '5'], idea: ['1', '2', '4'], heart: ['1', '2', '3', '4', '5', '6'] },
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
     comments: [
       { id: 'c4-1', user: MOCK_USERS[4], text: 'This is super cool. What was the size of your dataset?', createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString() },

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import { Post, User, Comment } from './types';
 import { MOCK_POSTS, MOCK_USERS } from './constants';
@@ -14,6 +13,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [view, setView] = useState<{ page: 'feed' | 'profile'; userId?: string }>({ page: 'feed' });
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
 
   const handleLogin = useCallback((user: User) => {
     setCurrentUser(user);
@@ -54,12 +54,14 @@ function App() {
 
   const handleOpenModal = useCallback(() => {
     if (currentUser) {
+      setEditingPost(null);
       setIsModalOpen(true);
     }
   }, [currentUser]);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
+    setEditingPost(null);
   }, []);
 
   const handleCreatePost = useCallback((newPostData: Omit<Post, 'id' | 'createdAt' | 'user' | 'reactions' | 'comments'>) => {
@@ -68,13 +70,35 @@ function App() {
       ...newPostData,
       id: new Date().toISOString(),
       user: currentUser,
-      reactions: { fire: 0, idea: 0, heart: 0 },
+      reactions: { fire: [], idea: [], heart: [] },
       createdAt: new Date().toISOString(),
       comments: [],
     };
     setPosts(prevPosts => [newPost, ...prevPosts]);
-    setIsModalOpen(false);
+    handleCloseModal();
+  }, [currentUser, handleCloseModal]);
+  
+  const handleOpenEditModal = useCallback((post: Post) => {
+    if (currentUser && currentUser.id === post.user.id) {
+        setEditingPost(post);
+        setIsModalOpen(true);
+    }
   }, [currentUser]);
+
+  const handleUpdatePost = useCallback((postId: string, updatedData: Omit<Post, 'id' | 'createdAt' | 'user' | 'reactions' | 'comments'>) => {
+    setPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId
+          ? {
+              ...post,
+              ...updatedData,
+            }
+          : post
+      )
+    );
+    handleCloseModal();
+  }, [handleCloseModal]);
+
 
   const handleAddComment = useCallback((postId: string, text: string) => {
     if (!currentUser) return;
@@ -99,21 +123,30 @@ function App() {
   }, [currentUser]);
   
   const handleUpdateReaction = useCallback((postId: string, reaction: keyof Post['reactions']) => {
+    if (!currentUser) return;
+
     setPosts(prevPosts =>
       prevPosts.map(post => {
         if (post.id === postId) {
+          const currentReactionList = post.reactions[reaction];
+          const userHasReacted = currentReactionList.includes(currentUser.id);
+          
+          const newReactionList = userHasReacted
+            ? currentReactionList.filter(userId => userId !== currentUser.id)
+            : [...currentReactionList, currentUser.id];
+          
           return {
             ...post,
             reactions: {
               ...post.reactions,
-              [reaction]: post.reactions[reaction] + 1,
+              [reaction]: newReactionList,
             },
           };
         }
         return post;
       })
     );
-  }, []);
+  }, [currentUser]);
 
   const handleDeletePost = useCallback((postId: string) => {
     if (!currentUser) return;
@@ -231,6 +264,7 @@ function App() {
             onDeletePost={handleDeletePost}
             onDeleteComment={handleDeleteComment}
             onFollowToggle={handleFollowToggle}
+            onEditPost={handleOpenEditModal}
           />
         ) : (
           <Feed 
@@ -241,6 +275,7 @@ function App() {
             onUpdateReaction={handleUpdateReaction}
             onDeletePost={handleDeletePost}
             onDeleteComment={handleDeleteComment}
+            onEditPost={handleOpenEditModal}
           />
         )}
       </main>
@@ -248,6 +283,8 @@ function App() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onCreatePost={handleCreatePost}
+        onUpdatePost={handleUpdatePost}
+        postToEdit={editingPost}
       />
     </div>
   );

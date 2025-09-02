@@ -11,9 +11,10 @@ interface FeedProps {
   onUpdateReaction: (postId: string, reaction: keyof Post['reactions']) => void;
   onDeletePost: (postId: string) => void;
   onDeleteComment: (postId: string, commentId: string) => void;
+  onEditPost: (post: Post) => void;
 }
 
-const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction, onDeletePost, onDeleteComment }) => {
+const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction, onDeletePost, onDeleteComment, onEditPost }) => {
   return (
     <div className="flex flex-col gap-6">
       {posts.length > 0 ? (
@@ -27,6 +28,7 @@ const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigat
             onUpdateReaction={onUpdateReaction}
             onDeletePost={onDeletePost}
             onDeleteComment={onDeleteComment}
+            onEditPost={onEditPost}
           />
         ))
       ) : (
