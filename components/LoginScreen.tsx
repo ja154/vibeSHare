@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { User } from '../types';
 
@@ -8,18 +9,27 @@ interface LoginScreenProps {
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin }) => {
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleLoginAttempt = (e: React.FormEvent) => {
     e.preventDefault();
     const foundUser = users.find(user => user.name.toLowerCase() === username.toLowerCase().trim());
     if (foundUser) {
-      onLogin(foundUser);
+      // In a real app, passwords would be hashed. Here we do a simple string comparison.
+      if (foundUser.password === password) {
+        onLogin(foundUser);
+      } else {
+        setError('Incorrect password. Please try again.');
+      }
     } else {
-      const availableUsers = users.map(u => u.name).join(', ');
-      setError(`User not found. Try one of these: ${availableUsers}`);
+      setError(`User not found. Please check the username.`);
     }
   };
+
+  const clearError = () => {
+    if (error) setError('');
+  }
 
   return (
     <div className="fixed inset-0 bg-primary-bg flex flex-col items-center justify-center z-50 p-4">
@@ -46,16 +56,34 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin }) => {
                         value={username}
                         onChange={(e) => {
                             setUsername(e.target.value);
-                            if (error) setError('');
+                            clearError();
                         }}
                         placeholder="e.g. Alex Dev"
                         required
                         className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition"
-                        aria-describedby="username-error"
+                        aria-describedby="error-message"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                        Password
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        value={password}
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            clearError();
+                        }}
+                        placeholder="e.g. password1"
+                        required
+                        className="w-full bg-primary-bg border border-border-color rounded-lg p-3 text-white focus:ring-2 focus:ring-neon-green focus:outline-none transition"
+                        aria-describedby="error-message"
                     />
                 </div>
                 {error && (
-                    <p id="username-error" className="text-sm text-red-400 -mt-2">
+                    <p id="error-message" className="text-sm text-red-400 -mt-2">
                         {error}
                     </p>
                 )}
@@ -67,6 +95,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ users, onLogin }) => {
                 </button>
             </div>
         </form>
+         <p className="text-xs text-center text-gray-500 mt-4">Hint: For any user, the password is 'password' + their ID number (e.g., 'password1').</p>
       </div>
 
        <footer className="absolute bottom-8 text-gray-600 text-sm">

@@ -3,10 +3,11 @@ export interface User {
   id: string;
   name: string;
   avatarUrl: string;
+  password?: string;
 }
 
 export interface Comment {
-  id: string;
+  id:string;
   user: User;
   text: string;
   createdAt: string;

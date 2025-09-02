@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { Post, User, Comment } from './types';
 import { MOCK_POSTS, MOCK_USERS } from './constants';
@@ -86,6 +87,36 @@ function App() {
     );
   }, []);
 
+  const handleDeletePost = useCallback((postId: string) => {
+    if (!currentUser) return;
+    const postToDelete = posts.find(p => p.id === postId);
+    // Authorization check: Only the post owner can delete.
+    if (postToDelete && postToDelete.user.id === currentUser.id) {
+       if (window.confirm('Are you sure you want to delete this vibe?')) {
+         setPosts(prevPosts => prevPosts.filter(p => p.id !== postId));
+       }
+    }
+  }, [currentUser, posts]);
+
+  const handleDeleteComment = useCallback((postId: string, commentId: string) => {
+    if (!currentUser) return;
+    
+    setPosts(prevPosts => prevPosts.map(post => {
+      if (post.id === postId) {
+        const commentToDelete = post.comments.find(c => c.id === commentId);
+        // Authorization check: Comment owner or post owner can delete.
+        if (commentToDelete && (commentToDelete.user.id === currentUser.id || post.user.id === currentUser.id)) {
+          return {
+            ...post,
+            comments: post.comments.filter(c => c.id !== commentId),
+          };
+        }
+      }
+      return post;
+    }));
+  }, [currentUser]);
+
+
   const navigateToProfile = useCallback((userId: string) => {
     window.scrollTo(0, 0);
     setView({ page: 'profile', userId });
@@ -137,6 +168,8 @@ function App() {
           currentUser={currentUser}
           onNavigateToProfile={navigateToProfile}
           onUpdateReaction={handleUpdateReaction}
+          onDeletePost={handleDeletePost}
+          onDeleteComment={handleDeleteComment}
         />
       </main>
       <CreatePostModal

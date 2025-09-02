@@ -2,12 +2,12 @@
 import { Post, User } from './types';
 
 export const MOCK_USERS: User[] = [
-  { id: '1', name: 'Alex Dev', avatarUrl: 'https://picsum.photos/seed/alex/100/100' },
-  { id: '2', name: 'UI Specialist', avatarUrl: 'https://picsum.photos/seed/uidev/100/100' },
-  { id: '3', name: 'Backend Wizard', avatarUrl: 'https://picsum.photos/seed/backend/100/100' },
-  { id: '4', name: 'AI Explorer', avatarUrl: 'https://picsum.photos/seed/ai/100/100' },
-  { id: '5', name: 'Data Diva', avatarUrl: 'https://picsum.photos/seed/datagirl/100/100' },
-  { id: '6', name: 'Rookie Coder', avatarUrl: 'https://picsum.photos/seed/rookie/100/100' },
+  { id: '1', name: 'Alex Dev', avatarUrl: 'https://picsum.photos/seed/alex/100/100', password: 'password1' },
+  { id: '2', name: 'UI Specialist', avatarUrl: 'https://picsum.photos/seed/uidev/100/100', password: 'password2' },
+  { id: '3', name: 'Backend Wizard', avatarUrl: 'https://picsum.photos/seed/backend/100/100', password: 'password3' },
+  { id: '4', name: 'AI Explorer', avatarUrl: 'https://picsum.photos/seed/ai/100/100', password: 'password4' },
+  { id: '5', name: 'Data Diva', avatarUrl: 'https://picsum.photos/seed/datagirl/100/100', password: 'password5' },
+  { id: '6', name: 'Rookie Coder', avatarUrl: 'https://picsum.photos/seed/rookie/100/100', password: 'password6' },
 ];
 
 export const MOCK_POSTS: Post[] = [

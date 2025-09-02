@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Post, User } from '../types';
 import { FireIcon } from './icons/FireIcon';
@@ -5,6 +6,7 @@ import { LightbulbIcon } from './icons/LightbulbIcon';
 import { HeartIcon } from './icons/HeartIcon';
 import { CodeBracketIcon } from './icons/CodeBracketIcon';
 import { ChatBubbleIcon } from './icons/ChatBubbleIcon';
+import { TrashIcon } from './icons/TrashIcon';
 
 interface PostCardProps {
   post: Post;
@@ -12,9 +14,11 @@ interface PostCardProps {
   onAddComment: (postId: string, text: string) => void;
   onNavigateToProfile: (userId: string) => void;
   onUpdateReaction: (postId: string, reaction: keyof Post['reactions']) => void;
+  onDeletePost: (postId: string) => void;
+  onDeleteComment: (postId: string, commentId: string) => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction, onDeletePost, onDeleteComment }) => {
   const [commentText, setCommentText] = useState('');
 
   const handleReactionClick = useCallback((reaction: keyof Post['reactions']) => {
@@ -47,7 +51,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
   return (
     <article className="bg-card-bg border border-border-color rounded-2xl overflow-hidden shadow-lg transition-all hover:border-neon-green/50">
       <div className="p-4">
-        <div className="flex items-center mb-4">
+        <div className="flex items-start justify-between mb-4">
           <button 
             onClick={() => onNavigateToProfile(post.user.id)}
             className="flex items-center gap-3 text-left group focus:outline-none focus:ring-2 focus:ring-neon-green rounded-lg -m-1 p-1"
@@ -59,6 +63,15 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
               <p className="text-xs text-gray-400">{timeAgo(post.createdAt)}</p>
             </div>
           </button>
+          {currentUser?.id === post.user.id && (
+            <button
+                onClick={() => onDeletePost(post.id)}
+                className="text-gray-500 hover:text-red-500 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-red-500"
+                aria-label="Delete post"
+            >
+                <TrashIcon className="w-5 h-5" />
+            </button>
+          )}
         </div>
         <h2 className="text-xl font-bold text-white mb-2">{post.title}</h2>
         <p className="text-gray-300 text-sm mb-4">{post.description}</p>
@@ -115,7 +128,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
           </h3>
           <div className="space-y-4">
             {post.comments.map(comment => (
-              <div key={comment.id} className="flex items-start gap-3">
+              <div key={comment.id} className="flex items-start gap-3 group/comment">
                 <button 
                     onClick={() => onNavigateToProfile(comment.user.id)} 
                     className="flex-shrink-0 rounded-full group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card-bg focus:ring-neon-green" 
@@ -132,6 +145,15 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
                   </div>
                   <p className="text-sm text-gray-300 bg-primary-bg p-2 rounded-lg mt-1">{comment.text}</p>
                 </div>
+                {(currentUser?.id === comment.user.id || currentUser?.id === post.user.id) && (
+                    <button
+                        onClick={() => onDeleteComment(post.id, comment.id)}
+                        className="text-gray-600 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover/comment:opacity-100"
+                        aria-label="Delete comment"
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                    </button>
+                )}
               </div>
             ))}
           </div>

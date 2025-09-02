@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Post, User } from '../types';
 import PostCard from './PostCard';
@@ -8,9 +9,11 @@ interface FeedProps {
   onAddComment: (postId: string, text: string) => void;
   onNavigateToProfile: (userId: string) => void;
   onUpdateReaction: (postId: string, reaction: keyof Post['reactions']) => void;
+  onDeletePost: (postId: string) => void;
+  onDeleteComment: (postId: string, commentId: string) => void;
 }
 
-const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction }) => {
+const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigateToProfile, onUpdateReaction, onDeletePost, onDeleteComment }) => {
   return (
     <div className="flex flex-col gap-6">
       {posts.length > 0 ? (
@@ -22,6 +25,8 @@ const Feed: React.FC<FeedProps> = ({ posts, currentUser, onAddComment, onNavigat
             onAddComment={onAddComment}
             onNavigateToProfile={onNavigateToProfile}
             onUpdateReaction={onUpdateReaction}
+            onDeletePost={onDeletePost}
+            onDeleteComment={onDeleteComment}
           />
         ))
       ) : (
