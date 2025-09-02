@@ -5,7 +5,7 @@ import Header from './components/Header';
 import Feed from './components/Feed';
 import CreatePostModal from './components/CreatePostModal';
 import LoginScreen from './components/LoginScreen';
-import ProfileHeader from './components/ProfileHeader';
+import ProfilePage from './components/ProfilePage';
 
 function App() {
   const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
@@ -185,22 +185,29 @@ function App() {
         onNavigateToProfile={navigateToProfile}
       />
       <main className="max-w-2xl mx-auto px-4 py-8">
-        {profileUser && (
-          <ProfileHeader 
-            user={profileUser}
-            postCount={displayedPosts.length}
+        {view.page === 'profile' && profileUser ? (
+          <ProfilePage
+            profileUser={profileUser}
+            posts={displayedPosts}
+            currentUser={currentUser}
             onNavigateToFeed={navigateToFeed}
+            onAddComment={handleAddComment}
+            onNavigateToProfile={navigateToProfile}
+            onUpdateReaction={handleUpdateReaction}
+            onDeletePost={handleDeletePost}
+            onDeleteComment={handleDeleteComment}
+          />
+        ) : (
+          <Feed 
+            posts={displayedPosts} 
+            onAddComment={handleAddComment} 
+            currentUser={currentUser}
+            onNavigateToProfile={navigateToProfile}
+            onUpdateReaction={handleUpdateReaction}
+            onDeletePost={handleDeletePost}
+            onDeleteComment={handleDeleteComment}
           />
         )}
-        <Feed 
-          posts={displayedPosts} 
-          onAddComment={handleAddComment} 
-          currentUser={currentUser}
-          onNavigateToProfile={navigateToProfile}
-          onUpdateReaction={handleUpdateReaction}
-          onDeletePost={handleDeletePost}
-          onDeleteComment={handleDeleteComment}
-        />
       </main>
       <CreatePostModal
         isOpen={isModalOpen}
