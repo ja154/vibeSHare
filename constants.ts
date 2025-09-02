@@ -2,12 +2,12 @@
 import { Post, User } from './types';
 
 export const MOCK_USERS: User[] = [
-  { id: '1', name: 'Alex Dev', avatarUrl: 'https://picsum.photos/seed/alex/100/100', password: 'password1', following: ['2', '4'], followers: ['2'] },
-  { id: '2', name: 'UI Specialist', avatarUrl: 'https://picsum.photos/seed/uidev/100/100', password: 'password2', following: ['1'], followers: ['1'] },
-  { id: '3', name: 'Backend Wizard', avatarUrl: 'https://picsum.photos/seed/backend/100/100', password: 'password3', following: [], followers: [] },
-  { id: '4', name: 'AI Explorer', avatarUrl: 'https://picsum.photos/seed/ai/100/100', password: 'password4', following: [], followers: ['1'] },
-  { id: '5', name: 'Data Diva', avatarUrl: 'https://picsum.photos/seed/datagirl/100/100', password: 'password5', following: [], followers: [] },
-  { id: '6', name: 'Rookie Coder', avatarUrl: 'https://picsum.photos/seed/rookie/100/100', password: 'password6', following: [], followers: [] },
+  { id: '1', name: 'Alex Dev', email: 'alex@example.com', avatarUrl: 'https://picsum.photos/seed/alex/100/100', password: 'password1', following: ['2', '4'], followers: ['2'] },
+  { id: '2', name: 'UI Specialist', email: 'ui@example.com', avatarUrl: 'https://picsum.photos/seed/uidev/100/100', password: 'password2', following: ['1'], followers: ['1'] },
+  { id: '3', name: 'Backend Wizard', email: 'backend@example.com', avatarUrl: 'https://picsum.photos/seed/backend/100/100', password: 'password3', following: [], followers: [] },
+  { id: '4', name: 'AI Explorer', email: 'ai@example.com', avatarUrl: 'https://picsum.photos/seed/ai/100/100', password: 'password4', following: [], followers: ['1'] },
+  { id: '5', name: 'Data Diva', email: 'data@example.com', avatarUrl: 'https://picsum.photos/seed/datagirl/100/100', password: 'password5', following: [], followers: [] },
+  { id: '6', name: 'Rookie Coder', email: 'rookie@example.com', avatarUrl: 'https://picsum.photos/seed/rookie/100/100', password: 'password6', following: [], followers: [] },
 ];
 
 export const MOCK_POSTS: Post[] = [

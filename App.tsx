@@ -24,10 +24,11 @@ function App() {
     setView({ page: 'feed' }); // Reset view on logout
   }, []);
 
-  const handleSignUp = useCallback((username: string, password: string): User => {
+  const handleSignUp = useCallback((username: string, email: string, password: string): User => {
     const newUser: User = {
         id: String(users.length + 1),
         name: username,
+        email: email,
         password: password,
         avatarUrl: `https://picsum.photos/seed/${username.toLowerCase()}/100/100`,
         followers: [],
@@ -38,10 +39,11 @@ function App() {
     return newUser;
   }, [users.length]);
 
-  const handleResetPassword = useCallback((username: string, newPassword: string): boolean => {
+  const handleResetPassword = useCallback((usernameOrEmail: string, newPassword: string): boolean => {
     let success = false;
+    const identifier = usernameOrEmail.toLowerCase();
     setUsers(prevUsers => prevUsers.map(user => {
-      if (user.name.toLowerCase() === username.toLowerCase()) {
+      if (user.name.toLowerCase() === identifier || user.email.toLowerCase() === identifier) {
         success = true;
         return { ...user, password: newPassword };
       }
