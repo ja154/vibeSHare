@@ -161,20 +161,22 @@ function App() {
 
   const handleDeleteComment = useCallback((postId: string, commentId: string) => {
     if (!currentUser) return;
-    
-    setPosts(prevPosts => prevPosts.map(post => {
-      if (post.id === postId) {
-        const commentToDelete = post.comments.find(c => c.id === commentId);
-        // Authorization check: Comment owner or post owner can delete.
-        if (commentToDelete && (commentToDelete.user.id === currentUser.id || post.user.id === currentUser.id)) {
-          return {
-            ...post,
-            comments: post.comments.filter(c => c.id !== commentId),
-          };
+
+    if (window.confirm('Are you sure you want to delete this comment?')) {
+      setPosts(prevPosts => prevPosts.map(post => {
+        if (post.id === postId) {
+          const commentToDelete = post.comments.find(c => c.id === commentId);
+          // Authorization check: Comment owner or post owner can delete.
+          if (commentToDelete && (commentToDelete.user.id === currentUser.id || post.user.id === currentUser.id)) {
+            return {
+              ...post,
+              comments: post.comments.filter(c => c.id !== commentId),
+            };
+          }
         }
-      }
-      return post;
-    }));
+        return post;
+      }));
+    }
   }, [currentUser]);
 
   const handleFollowToggle = useCallback((userIdToToggle: string) => {

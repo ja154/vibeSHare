@@ -183,7 +183,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, currentUser, onAddComment, on
                 {(currentUser?.id === comment.user.id || currentUser?.id === post.user.id) && (
                     <button
                         onClick={() => onDeleteComment(post.id, comment.id)}
-                        className="text-gray-600 hover:text-red-500 transition-colors p-1 rounded-full opacity-0 group-hover/comment:opacity-100"
+                        className="text-gray-600 hover:text-red-500 transition-all duration-200 p-1 rounded-full opacity-0 group-hover/comment:opacity-100"
                         aria-label="Delete comment"
                     >
                         <TrashIcon className="w-4 h-4" />
